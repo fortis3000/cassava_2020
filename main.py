@@ -18,6 +18,7 @@ from config import (
     MODELS_FOLDER,
     TRAIN_SIZE,
     WEIGHTS,
+    MODEL_KIND
 )
 
 import matplotlib.pyplot as plt
@@ -139,4 +140,4 @@ if __name__ == "__main__":
     plot_hist(hist, "hist.jpg")
 
     # Saving trained model
-    model.save(os.path.join("models", DATESTRING))
+    model.save(os.path.join("models", DATESTRING + MODEL_KIND))

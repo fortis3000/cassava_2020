@@ -8,7 +8,7 @@ if not os.path.exists(MODELS_FOLDER):
 
 DATAPATH = os.path.join(WORKDIR, "data", "raw")
 
-MODEL_KIND = "EfficientNetB3"
+MODEL_KIND = "EfficientNetB5"
 
 sizes = {
     "EfficientNetB0": 224,
@@ -34,7 +34,7 @@ SEED = 42
 
 LEARNING_RATE = 1e-4
 BATCH_SIZE = 32
-EPOCHS = 2  # max 100
+EPOCHS = 100  # max 100
 
 #
 # https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras
