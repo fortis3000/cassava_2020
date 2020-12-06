@@ -34,11 +34,11 @@ def f1_score_binary(
     Computes f1 score on binary inputs
     """
 
-    # tf.debugging.assert_equal(
-    #     tf.rank(y_true),
-    #     tf.rank(y_pred),
-    #     message="y_true and y_pred are to be the same size",
-    # )
+    tf.debugging.assert_equal(
+        tf.rank(y_true),
+        tf.rank(y_pred),
+        message="y_true and y_pred are to be the same size",
+    )
 
     # true positive = predicted(1) * ground_truth(1) = 1
     true_positive = tf.reduce_sum(tf.multiply(y_true, y_pred), axis=0)
@@ -107,14 +107,6 @@ def f1_score_multiclass(
         f"Provide weights tensor with the length equals to classes length:"
         f" classes length {len(classes)}, weights length: {weights.shape[0]}"
     )
-
-    # TODO: assert num_classes_pred > num_classes_truth
-    if weights is not None:
-        tf.debugging.assert_equal(
-            tf.cast(tf.reduce_sum(weights), dtype=tf.float32),
-            tf.constant(1, dtype=tf.float32),
-            message="Provide weights tensor with the sum equals 1",
-        )
 
     # raise Exception("Here")
     num_examples = tf.shape(y_pred)[0]

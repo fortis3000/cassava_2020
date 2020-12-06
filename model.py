@@ -121,6 +121,13 @@ def f1_macro_weighted(y_true, y_pred):
 # ncce = partial(w_categorical_crossentropy, weights=np.array(WEIGHTS))
 
 
+def get_lr_metric(optimizer):
+    def lr(y_true, y_pred):
+        return optimizer.lr
+
+    return lr
+
+
 def build_model_transfer(num_classes):
     inputs = k.layers.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
     x = img_augmentation(inputs)
@@ -135,38 +142,36 @@ def build_model_transfer(num_classes):
     model.trainable = False
 
     # Rebuild top (head)
-    x = k.layers.GlobalAveragePooling2D(name="avg_pool")(model.output)
-    x = k.layers.BatchNormalization()(x)
+    x = k.layers.GlobalAveragePooling2D(name="avg_pool_head")(model.output)
+    x = k.layers.BatchNormalization(name="batch_norm_head")(x)
 
     top_dropout_rate = 0.2
-    x = k.layers.Dropout(top_dropout_rate, name="top_dropout")(x)
+    x = k.layers.Dropout(top_dropout_rate, name="top_dropout_head")(x)
     # TODO: add layers with swish
     #  https://medium.com/the-artificial-impostor/more-memory-efficient-swish
     #  -activation-function-e07c22c12a76
     # https://www.kaggle.com/c/rsna-intracranial-hemorrhage-detection
     # /discussion/111292
-    outputs = layers.Dense(num_classes, activation="softmax", name="pred")(x)
+    outputs = layers.Dense(
+        num_classes, activation="softmax", name="softmax_head"
+    )(x)
 
     print("head added")
     # Compile
     model = k.Model(inputs, outputs, name="EfficientNet")
 
-    # cosine decay schedule
-    decay_steps = EPOCHS * int(NUM_IMAGES * TRAIN_SIZE) // BATCH_SIZE
-    scheduler = tf.keras.experimental.CosineDecay(
-        LEARNING_RATE, decay_steps, alpha=0.0, name=None
-    )
+    optimizer = k.optimizers.Adam(learning_rate=LEARNING_RATE)
+    lr_metric = get_lr_metric(optimizer)
 
-    optimizer = k.optimizers.Adam(learning_rate=scheduler)
-
+    # displayed in Tensorboard
     metrics = [
+        k.metrics.CategoricalCrossentropy(),
         k.metrics.CategoricalAccuracy(),
-        # k.metrics.Precision(),
-        # k.metrics.Recall(),
         f1_macro,
         f1_macro_median,
         f1_macro_weighted,
         f1_micro,
+        lr_metric,
     ]
 
     print("start compiling")

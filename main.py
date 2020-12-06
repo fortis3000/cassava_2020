@@ -15,19 +15,14 @@ from config import (
     SEED,
     BATCH_SIZE,
     EPOCHS,
-    MODELS_FOLDER,
     TRAIN_SIZE,
     WEIGHTS,
-    MODEL_KIND
+    MODEL_KIND,
+    LEARNING_RATE,
+    MODELS_FOLDER
 )
 
 import matplotlib.pyplot as plt
-
-# def cosine_schedule(epoch, lr):
-#   if epoch < 10:
-#     return lr
-#   else:
-#     return lr * tf.math.exp(-0.1)
 
 
 def get_dt_str():
@@ -36,34 +31,48 @@ def get_dt_str():
 
 
 def plot_hist(hist, filename: str = None):
-    plt.plot(hist.history["categorical_accuracy"])
-    plt.plot(hist.history["val_categorical_accuracy"])
+    plt.plot(hist.history["loss"])
+    plt.plot(hist.history["val_loss"])
     plt.plot(hist.history["f1_macro"])
     plt.plot(hist.history["val_f1_macro"])
     plt.plot(hist.history["f1_macro_median"])
     plt.plot(hist.history["val_f1_macro_median"])
     plt.plot(hist.history["f1_macro_weighted"])
     plt.plot(hist.history["val_f1_macro_weighted"])
-    plt.plot(hist.history["f1_micro"])
-    plt.plot(hist.history["val_f1_micro"])
     plt.title("model metrics")
     plt.ylabel("percentage")
     plt.xlabel("epoch")
     plt.legend(
         [
-            "categorical_accuracy",
-            "val_categorical_accuracy",
+            "loss",
+            "val_loss",
             "f1_macro",
             "val_f1_macro",
             "f1_macro_median",
             "val_f1_macro_median",
             "f1_macro_weighted",
             "val_f1_macro_weighted",
-            "f1_micro",
-            "val_f1_micro",
         ],
         loc="upper left",
     )
+
+    if filename:
+        plt.savefig(filename)
+    else:
+        plt.show()
+
+
+def plot_hist_lr(hist, filename: str = None):
+    nb_epoch = len(hist.history["loss"])
+    learning_rate = hist.history["lr"]
+    xc = range(nb_epoch)
+    plt.figure(3, figsize=(7, 5))
+    plt.plot(xc, learning_rate)
+    plt.xlabel("num of Epochs")
+    plt.ylabel("learning rate")
+    plt.title("Learning rate")
+    plt.grid(True)
+    plt.style.use(["seaborn-ticks"])
 
     if filename:
         plt.savefig(filename)
@@ -79,10 +88,11 @@ def seed_everything(seed=0):
     os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
 
-seed_everything(SEED)
-warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
+
+    seed_everything(SEED)
+    warnings.filterwarnings("ignore")
 
     DATESTRING = get_dt_str()
 
@@ -108,15 +118,31 @@ if __name__ == "__main__":
     ds_test = ds_test.map(input_preprocess)
     ds_test = ds_test.batch(batch_size=BATCH_SIZE, drop_remainder=True)
 
-    ds_train.prefetch(2)
-    ds_test.prefetch(2)
+    ds_train.prefetch(tf.data.experimental.AUTOTUNE)
+    ds_test.prefetch(tf.data.experimental.AUTOTUNE)
 
     model = build_model_transfer(num_classes=NUM_CLASSES)
 
-    print("Start training")
+    # cosine decay schedule
+    # on which step scheduler is supposed to reach alpha * LEARNING_RATE
+    # !!! DECAY_STEPS == EPOCHS !!!
+    decay_steps = EPOCHS  # * int(NUM_IMAGES * TRAIN_SIZE) // BATCH_SIZE
+    scheduler = tf.keras.experimental.CosineDecay(
+        LEARNING_RATE, decay_steps, alpha=0.0, name=None  # 0.0 * LEARNING_RATE
+    )
 
     callbacks = [
-        tf.keras.callbacks.EarlyStopping(patience=10),
+        tf.keras.callbacks.EarlyStopping(patience=5),
+        tf.keras.callbacks.LearningRateScheduler(scheduler),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss',
+               factor=0.1,
+               patience=5,
+               verbose=1,
+               mode='auto',
+               min_delta=1e-4,
+               cooldown=0,
+               min_lr=0
+        ),
         tf.keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(
                 MODELS_FOLDER, "model.{epoch:02d}-{val_loss:.2f}.h5"
@@ -125,7 +151,6 @@ if __name__ == "__main__":
         tf.keras.callbacks.TensorBoard(
             log_dir=os.path.join("logs", DATESTRING)
         ),
-        # tf.keras.callbacks.LearningRateScheduler(schedule=cosine_schedule)
     ]
 
     hist = model.fit(
@@ -137,7 +162,7 @@ if __name__ == "__main__":
         class_weight={key: val for key, val in enumerate(WEIGHTS)},
     )
 
-    plot_hist(hist, "hist.jpg")
-
     # Saving trained model
-    model.save(os.path.join("models", DATESTRING + MODEL_KIND))
+    model.save(
+        os.path.join("models", DATESTRING + "_" + MODEL_KIND),
+    )
