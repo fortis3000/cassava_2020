@@ -19,7 +19,7 @@ from config import (
     WEIGHTS,
     MODEL_KIND,
     LEARNING_RATE,
-    MODELS_FOLDER
+    MODELS_FOLDER,
 )
 
 import matplotlib.pyplot as plt
@@ -88,7 +88,6 @@ def seed_everything(seed=0):
     os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
 
-
 if __name__ == "__main__":
 
     seed_everything(SEED)
@@ -134,14 +133,15 @@ if __name__ == "__main__":
     callbacks = [
         tf.keras.callbacks.EarlyStopping(patience=5),
         tf.keras.callbacks.LearningRateScheduler(scheduler),
-        tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss',
-               factor=0.1,
-               patience=5,
-               verbose=1,
-               mode='auto',
-               min_delta=1e-4,
-               cooldown=0,
-               min_lr=0
+        tf.keras.callbacks.ReduceLROnPlateau(
+            monitor="val_loss",
+            factor=0.1,
+            patience=5,
+            verbose=1,
+            mode="auto",
+            min_delta=1e-4,
+            cooldown=0,
+            min_lr=0,
         ),
         tf.keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(
