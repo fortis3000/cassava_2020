@@ -3,17 +3,22 @@ import os
 WORKDIR = "."
 
 MODELS_FOLDER = os.path.join(WORKDIR, "models")
+CHECKPOINT_FOLDER = os.path.join(WORKDIR, "chkp")
+
 if not os.path.exists(MODELS_FOLDER):
     os.makedirs(MODELS_FOLDER)
+    os.makedirs(CHECKPOINT_FOLDER)
 
 DATAPATH = os.path.join(WORKDIR, "data", "raw")
 
 if os.path.exists("/kaggle/input/cassava-leaf-disease-classification"):
     DATAPATH = "/kaggle/input/cassava-leaf-disease-classification"
 
-MODEL_KIND = "EfficientNetB0"
+MODEL_KIND = "EfficientNetB5"
 
-TEST_MODEL_FOLDER = "models/2020-12-06_19:48:38_EfficientNetB0"
+last_model = sorted(os.listdir(MODELS_FOLDER))[-1]
+
+TEST_MODEL_FOLDER = os.path.join(MODELS_FOLDER, last_model)
 
 sizes = {
     "EfficientNetB0": 224,
@@ -39,7 +44,7 @@ SEED = 42
 
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 32
-EPOCHS = 5  # max 100
+EPOCHS = 30  # max 100
 
 # https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras
 WEIGHTS = [3.93689, 1.95496, 1.79355, 0.32523, 1.66061]

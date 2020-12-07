@@ -55,15 +55,8 @@ def transform_rotation(image, height, rotation):
     # FIND ORIGIN PIXEL VALUES
     idx3 = tf.stack(
         [
-            DIM // 2
-            - idx2[
-                0,
-            ],
-            DIM // 2
-            - 1
-            + idx2[
-                1,
-            ],
+            DIM // 2 - idx2[0],
+            DIM // 2 - 1 + idx2[1],
         ]
     )
     d = tf.gather_nd(image, tf.transpose(idx3))
@@ -187,15 +180,15 @@ def data_augment(image, label):
     return image, label
 
 
-# if __name__ == "__main__":
-#
-#     import matplotlib.pyplot as plt
-#     from dataset import ds_train
-#
-#     for image, label in ds_train.take(1):
-#         for i in range(9):
-#             ax = plt.subplot(3, 3, i + 1)
-#             aug_img = img_augmentation(tf.expand_dims(image, axis=0))
-#             plt.imshow(aug_img[0].numpy().astype("uint8"))
-#             plt.title("{}".format(str(label.numpy())))
-#             plt.axis("off")
+if __name__ == "__main__":
+
+    import matplotlib.pyplot as plt
+    from dataset import ds_train
+
+    for image, label in ds_train.take(1):
+        for i in range(9):
+            ax = plt.subplot(3, 3, i + 1)
+            aug_img = img_augmentation(tf.expand_dims(image, axis=0))
+            plt.imshow(aug_img[0].numpy().astype("uint8"))
+            plt.title("{}".format(str(label.numpy())))
+            plt.axis("off")

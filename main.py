@@ -133,16 +133,16 @@ if __name__ == "__main__":
     callbacks = [
         tf.keras.callbacks.EarlyStopping(patience=5),
         tf.keras.callbacks.LearningRateScheduler(scheduler),
-        tf.keras.callbacks.ReduceLROnPlateau(
-            monitor="val_loss",
-            factor=0.1,
-            patience=5,
-            verbose=1,
-            mode="auto",
-            min_delta=1e-4,
-            cooldown=0,
-            min_lr=0,
-        ),
+        # tf.keras.callbacks.ReduceLROnPlateau(
+        #     monitor="val_loss",
+        #     factor=0.1,
+        #     patience=5,
+        #     verbose=1,
+        #     mode="auto",
+        #     min_delta=1e-4,
+        #     cooldown=0,
+        #     min_lr=0,
+        # ),
         tf.keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(
                 MODELS_FOLDER, "model.{epoch:02d}-{val_loss:.2f}.h5"
