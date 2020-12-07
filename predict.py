@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 
-from config import DATAPATH, HEIGHT, WIDTH, TEST_MODEL_FOLDER
+from config import DATAPATH, HEIGHT, WIDTH, MODELS_FOLDER
 
 
 def parse_image(filename):
@@ -20,6 +20,10 @@ def parse_image(filename):
 
 
 if __name__ == "__main__":
+
+    last_model = sorted(os.listdir(MODELS_FOLDER))[-1]
+
+    TEST_MODEL_FOLDER = os.path.join(MODELS_FOLDER, last_model)
 
     model = tf.saved_model.load(export_dir=TEST_MODEL_FOLDER)
 

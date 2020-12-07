@@ -16,10 +16,6 @@ if os.path.exists("/kaggle/input/cassava-leaf-disease-classification"):
 
 MODEL_KIND = "EfficientNetB5"
 
-last_model = sorted(os.listdir(MODELS_FOLDER))[-1]
-
-TEST_MODEL_FOLDER = os.path.join(MODELS_FOLDER, last_model)
-
 sizes = {
     "EfficientNetB0": 224,
     "EfficientNetB1": 240,
