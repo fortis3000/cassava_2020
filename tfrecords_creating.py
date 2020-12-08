@@ -57,17 +57,19 @@ if __name__ == "__main__":
         os.path.join(DATAPATH, "train.csv"), header=0, index_col=None
     )
 
+    upsample_multipliers = [12, 6, 6, 1, 5]
+
     # split inital dataset into train and val
     dfs_train = []
     dfs_val = []
     for label in range(NUM_CLASSES):
         sampled = df[df["label"] == label].sample(frac=1, random_state=SEED)
         dfs_val.append(sampled[:NUM_IMAGES_VAL])
-        dfs_train.append(sampled[NUM_IMAGES_VAL:])
+        dfs_train.append(
+            pd.concat([sampled[NUM_IMAGES_VAL:]] * upsample_multipliers[label])
+        )
 
     dfs = {"train": pd.concat(dfs_train), "val": pd.concat(dfs_val)}
-
-    # TODO: upsampling for train set considering class ratio
 
     for key, val in dfs.items():
         with tf.io.TFRecordWriter(
