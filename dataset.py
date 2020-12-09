@@ -63,15 +63,24 @@ def init_dataset(
 
     # parse dataset records
     if is_target:
-        dataset = dataset.map(_parse_image_function_train)
+        dataset = dataset.map(
+            _parse_image_function_train,
+            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        )
     else:
-        dataset = dataset.map(_parse_image_function_test)
+        dataset = dataset.map(
+            _parse_image_function_test,
+            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        )
 
     if shuffle:
-        dataset.shuffle(buffer_size=2048)
+        dataset.shuffle(buffer_size=20000)
+        dataset.shuffle(buffer_size=2000)
 
     if augment:
-        dataset.map(data_augment)
+        dataset.map(
+            data_augment, num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
 
     return dataset
 
@@ -86,7 +95,7 @@ def split_dataset(
 
     train_size = int(train_size * num_images)
 
-    dataset = dataset.shuffle(buffer_size=2048)
+    dataset = dataset.shuffle(buffer_size=20000)
 
     train_dataset = dataset.take(train_size)
     test_dataset = dataset.skip(train_size)
@@ -94,7 +103,6 @@ def split_dataset(
     return train_dataset, test_dataset
 
 
-# One-hot / categorical encoding
 def input_preprocess(image, label):
     label = tf.cast(label, tf.int32)
     image = tf.image.resize(image, SIZE)

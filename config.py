@@ -22,7 +22,18 @@ if not os.path.exists(TFRECORDS_TRAIN_PATH):
     os.makedirs(TFRECORDS_VAL_PATH)
 
 
-MODEL_KIND = "EfficientNetB4"
+MODEL_KIND = "EfficientNetB0"
+
+batch_sizes = {
+    "EfficientNetB0": 32,  # checked (local)
+    "EfficientNetB1": 16,
+    "EfficientNetB2": 16,
+    "EfficientNetB3": 16,
+    "EfficientNetB4": 16,
+    "EfficientNetB5": 8,  # checked (for Kaggle)
+    "EfficientNetB6": 8,
+    "EfficientNetB7": 8,
+}
 
 sizes = {
     "EfficientNetB0": 224,
@@ -46,19 +57,21 @@ TRAIN_SIZE = 0.8
 
 SEED = 42
 
-LEARNING_RATE = 1e-3
-LR_ALPHA = 1e-2
-BATCH_SIZE = 16
+LEARNING_RATE = 1e-4
+LR_ALPHA = 1e-3
+BATCH_SIZE = batch_sizes[MODEL_KIND]
 EPOCHS = 60  # max 100
 
 # https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras
-WEIGHTS = [3.93689, 1.95496, 1.79355, 0.32523, 1.66061]
+WEIGHTS = [1] * 5
 
 # uniform weights
-# [0.2, 0.2, 0.2, 0.2, 0.2]
+# [1] * 5
 # normalized weights
 # [0.40707, 0.20214, 0.18545, 0.03363, 0.17171]
 # multiples weights
 # [12.10488, 6.01096, 5.51467, 1.0, 5.10594]
 # sklearn weights
 # [3.93689, 1.95496 , 1.79355, 0.32523 , 1.66061]
+# sklearn upsampled
+# [3, 1.5, 1.5, 1, 1.5]

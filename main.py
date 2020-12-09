@@ -182,7 +182,7 @@ if __name__ == "__main__":
         validation_data=ds_test,
         callbacks=callbacks,
         verbose=1,
-        # class_weight={key: val for key, val in enumerate(WEIGHTS)},
+        class_weight={key: val for key, val in enumerate(WEIGHTS)},
     )
 
     # Saving trained model

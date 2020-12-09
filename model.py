@@ -6,7 +6,6 @@ from tensorflow.keras import layers
 import tensorflow.keras as k
 import tensorflow as tf
 
-from augs import data_augment
 from config import (
     IMG_SIZE,
     BATCH_SIZE,
@@ -110,7 +109,7 @@ def build_model_transfer(num_classes):
     x = inputs
 
     model = models_dict[MODEL_KIND](
-        weights=None,  # "imagenet",  # f"{MODEL_KIND.lower()}_notop.h5",
+        weights="imagenet",  # f"{MODEL_KIND.lower()}_notop.h5",
         include_top=False,
         input_tensor=x,
     )

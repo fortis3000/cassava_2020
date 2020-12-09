@@ -2,7 +2,7 @@ import tensorflow as tf
 import math
 import tensorflow.keras.backend as K
 
-
+from tensorflow.keras import layers
 from tensorflow.keras.layers.experimental import preprocessing
 from tensorflow.keras.models import Sequential
 
@@ -14,6 +14,13 @@ img_augmentation_sequential = Sequential(
         preprocessing.RandomTranslation(height_factor=0.1, width_factor=0.1),
         preprocessing.RandomFlip(),
         preprocessing.RandomContrast(factor=0.1),
+        preprocessing.CenterCrop(height=HEIGHT, width=WIDTH),
+        preprocessing.RandomZoom(
+            height_factor=(0.2, 0.5),
+            width_factor=(-0.3, 0.3),  # None to preserve ratio
+            fill_mode="constant",
+            seed=SEED,
+        ),
     ],
     name="img_augmentation",
 )
@@ -119,15 +126,8 @@ def transform_shear(image, height, shear):
     # FIND ORIGIN PIXEL VALUES
     idx3 = tf.stack(
         [
-            DIM // 2
-            - idx2[
-                0,
-            ],
-            DIM // 2
-            - 1
-            + idx2[
-                1,
-            ],
+            DIM // 2 - idx2[0],
+            DIM // 2 - 1 + idx2[1],
         ]
     )
     d = tf.gather_nd(image, tf.transpose(idx3))
