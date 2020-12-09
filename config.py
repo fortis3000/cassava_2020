@@ -22,7 +22,7 @@ if not os.path.exists(TFRECORDS_TRAIN_PATH):
     os.makedirs(TFRECORDS_VAL_PATH)
 
 
-MODEL_KIND = "EfficientNetB5"
+MODEL_KIND = "EfficientNetB4"
 
 sizes = {
     "EfficientNetB0": 224,
