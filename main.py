@@ -117,7 +117,7 @@ if __name__ == "__main__":
         os.path.join(TFRECORDS_TRAIN_PATH),
         is_target=True,
         shuffle=True,
-        augment=True
+        augment=True,
     )
     ds_train = ds_train.map(
         input_preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         os.path.join(TFRECORDS_VAL_PATH),
         is_target=True,
         shuffle=False,
-        augment=False
+        augment=False,
     )
     ds_test = ds_test.map(input_preprocess)
     ds_test = ds_test.batch(batch_size=BATCH_SIZE, drop_remainder=True)

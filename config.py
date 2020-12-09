@@ -48,7 +48,7 @@ SEED = 42
 
 LEARNING_RATE = 1e-3
 LR_ALPHA = 1e-2
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 EPOCHS = 60  # max 100
 
 # https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras
