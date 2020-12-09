@@ -8,7 +8,7 @@ from tensorflow.keras.models import Sequential
 
 from config import WIDTH, HEIGHT, CHANNELS, SEED
 
-img_augmentation = Sequential(
+img_augmentation_sequential = Sequential(
     [
         preprocessing.RandomRotation(factor=0.15, seed=SEED),
         preprocessing.RandomTranslation(height_factor=0.1, width_factor=0.1),
@@ -17,6 +17,28 @@ img_augmentation = Sequential(
     ],
     name="img_augmentation",
 )
+
+
+def image_augmentation_functional(image, label):
+
+    # Image Adjustments
+    image = tf.image.random_brightness(image=image, max_delta=0.3, seed=SEED)
+    image = tf.image.random_contrast(
+        image=image, lower=0.2, upper=0.5, seed=SEED
+    )
+    image = tf.image.random_saturation(
+        image=image, lower=0.2, upper=0.5, seed=SEED
+    )
+    image = tf.image.random_hue(
+        image=image, max_delta=0.3, seed=SEED
+    )  # max_delta must be in the interval [0, 0.5]
+
+    # Flipping, Rotating and Transposing
+    image = tf.image.random_flip_left_right(image=image, seed=SEED)
+    image = tf.image.random_flip_up_down(image=image, seed=SEED)
+
+    return image, label
+
 
 # TODO: add TTA
 
@@ -188,7 +210,7 @@ if __name__ == "__main__":
     for image, label in ds_train.take(1):
         for i in range(9):
             ax = plt.subplot(3, 3, i + 1)
-            aug_img = img_augmentation(tf.expand_dims(image, axis=0))
+            aug_img = img_augmentation_sequential(tf.expand_dims(image, axis=0))
             plt.imshow(aug_img[0].numpy().astype("uint8"))
             plt.title("{}".format(str(label.numpy())))
             plt.axis("off")

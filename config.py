@@ -14,6 +14,14 @@ DATAPATH = os.path.join(WORKDIR, "data", "raw")
 if os.path.exists("/kaggle/input/cassava-leaf-disease-classification"):
     DATAPATH = "/kaggle/input/cassava-leaf-disease-classification"
 
+TFRECORDS_TRAIN_PATH = os.path.join(WORKDIR, "train_tfrecords_upsampled")
+TFRECORDS_VAL_PATH = os.path.join(WORKDIR, "val_tfrecords_upsampled")
+
+if not os.path.exists(TFRECORDS_TRAIN_PATH):
+    os.makedirs(TFRECORDS_TRAIN_PATH)
+    os.makedirs(TFRECORDS_VAL_PATH)
+
+
 MODEL_KIND = "EfficientNetB5"
 
 sizes = {
@@ -39,8 +47,9 @@ TRAIN_SIZE = 0.8
 SEED = 42
 
 LEARNING_RATE = 1e-3
+LR_ALPHA = 1e-2
 BATCH_SIZE = 32
-EPOCHS = 30  # max 100
+EPOCHS = 60  # max 100
 
 # https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras
 WEIGHTS = [3.93689, 1.95496, 1.79355, 0.32523, 1.66061]

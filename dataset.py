@@ -45,22 +45,11 @@ def _parse_image_function_test(example_proto):
     return image
 
 
-# def _decode_image(dataset_item) -> np.ndarray:
-#     """
-#     Convert bytes string into uint8 numpy ndarray
-#     """
-#     if is_target:
-#         return \
-#         (tf.image.decode_image(dataset_item['image'], channels=3).numpy(),
-#         dataset_item['target'])
-#     else:
-#         return tf.image.decode_image(dataset_item['image'], channels=3).numpy()
-
-
 def init_dataset(
     path: str,
     is_target=True,
     shuffle=False,
+    augment=False,
 ):
     # upload TFRecords files
     read_obj = (
@@ -79,7 +68,10 @@ def init_dataset(
         dataset = dataset.map(_parse_image_function_test)
 
     if shuffle:
-        dataset.shuffle(buffer_size=32)
+        dataset.shuffle(buffer_size=2048)
+
+    if augment:
+        dataset.map(data_augment)
 
     return dataset
 
@@ -94,7 +86,7 @@ def split_dataset(
 
     train_size = int(train_size * num_images)
 
-    dataset = dataset.shuffle(buffer_size=32)
+    dataset = dataset.shuffle(buffer_size=2048)
 
     train_dataset = dataset.take(train_size)
     test_dataset = dataset.skip(train_size)

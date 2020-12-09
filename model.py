@@ -6,7 +6,7 @@ from tensorflow.keras import layers
 import tensorflow.keras as k
 import tensorflow as tf
 
-from augs import img_augmentation
+from augs import data_augment
 from config import (
     IMG_SIZE,
     BATCH_SIZE,
@@ -97,30 +97,6 @@ def f1_macro_weighted(y_true, y_pred):
     return tf.reduce_mean(f1_scores, axis=-1)
 
 
-# https://github.com/keras-team/keras/issues/2115#issuecomment-204060456
-# from itertools import product
-# from functools import partial
-# import numpy as np
-# import tensorflow.keras.backend as K
-#
-#
-# def w_categorical_crossentropy(y_true, y_pred, weights):
-#     nb_cl = len(weights)
-#     final_mask = K.zeros_like(y_pred[:, 0])
-#     y_pred_max = K.max(y_pred, axis=1)
-#     y_pred_max = K.reshape(y_pred_max, (K.shape(y_pred)[0], 1))
-#     y_pred_max_mat = K.equal(y_pred, y_pred_max)
-#     for c_p, c_t in product(range(nb_cl), range(nb_cl)):
-#         final_mask += (weights[c_t, c_p] * y_pred_max_mat[:, c_p] * y_true[:, c_t])
-#     return K.categorical_crossentropy(y_pred, y_true) * final_mask
-#
-# w_array = np.ones((10,10))
-# w_array[1, 7] = 1.2
-# w_array[7, 1] = 1.2
-#
-# ncce = partial(w_categorical_crossentropy, weights=np.array(WEIGHTS))
-
-
 def get_lr_metric(optimizer):
     def lr(y_true, y_pred):
         return optimizer.lr
@@ -130,16 +106,22 @@ def get_lr_metric(optimizer):
 
 def build_model_transfer(num_classes):
     inputs = k.layers.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
-    x = img_augmentation(inputs)
-    # x = inputs
+    # x = img_augmentation(inputs)
+    x = inputs
 
     model = models_dict[MODEL_KIND](
-        include_top=False, input_tensor=x, weights="imagenet"
+        weights=None,  # "imagenet",  # f"{MODEL_KIND.lower()}_notop.h5",
+        include_top=False,
+        input_tensor=x,
     )
 
     print("model initialized")
     # freeze model
-    model.trainable = False
+    model.trainable = True
+
+    # for layer in model.layers[-40:]:
+    #     if not isinstance(layer, layers.BatchNormalization):
+    #         layer.trainable = True
 
     # Rebuild top (head)
     x = k.layers.GlobalAveragePooling2D(name="avg_pool_head")(model.output)
@@ -147,11 +129,7 @@ def build_model_transfer(num_classes):
 
     top_dropout_rate = 0.2
     x = k.layers.Dropout(top_dropout_rate, name="top_dropout_head")(x)
-    # TODO: add layers with swish
-    #  https://medium.com/the-artificial-impostor/more-memory-efficient-swish
-    #  -activation-function-e07c22c12a76
-    # https://www.kaggle.com/c/rsna-intracranial-hemorrhage-detection
-    # /discussion/111292
+
     outputs = layers.Dense(
         num_classes, activation="softmax", name="softmax_head"
     )(x)
@@ -167,6 +145,16 @@ def build_model_transfer(num_classes):
     metrics = [
         k.metrics.CategoricalCrossentropy(),
         k.metrics.CategoricalAccuracy(),
+        k.metrics.AUC(
+            num_thresholds=200,
+            curve="ROC",
+            summation_method="interpolation",
+            name=None,
+            dtype=None,
+            thresholds=None,
+            multi_label=True,
+            label_weights=None,
+        ),
         f1_macro,
         f1_macro_median,
         f1_macro_weighted,
@@ -177,7 +165,7 @@ def build_model_transfer(num_classes):
     print("start compiling")
     model.compile(
         optimizer=optimizer,
-        loss="categorical_crossentropy",  # TODO: weighted cross-entropy
+        loss="categorical_crossentropy",
         metrics=metrics,
     )
 

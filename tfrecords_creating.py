@@ -8,7 +8,13 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from config import DATAPATH, SEED, NUM_CLASSES
+from config import (
+    DATAPATH,
+    SEED,
+    NUM_CLASSES,
+    TFRECORDS_TRAIN_PATH,
+    TFRECORDS_VAL_PATH,
+)
 
 
 def seed_everything(seed=0):
@@ -57,7 +63,7 @@ if __name__ == "__main__":
         os.path.join(DATAPATH, "train.csv"), header=0, index_col=None
     )
 
-    upsample_multipliers = [12, 6, 6, 1, 5]
+    upsample_multipliers = [15, 7, 7, 1, 7]  # considering 200 val images
 
     # split inital dataset into train and val
     dfs_train = []
@@ -70,10 +76,11 @@ if __name__ == "__main__":
         )
 
     dfs = {"train": pd.concat(dfs_train), "val": pd.concat(dfs_val)}
+    paths = {{"train": TFRECORDS_TRAIN_PATH, "val": TFRECORDS_VAL_PATH}}
 
     for key, val in dfs.items():
         with tf.io.TFRecordWriter(
-            os.path.join(DATAPATH, f"{key}.tfrecords")
+            os.path.join(paths[key], f"{key}.tfrecords")
         ) as writer:
             for row, col in val.iterrows():
                 image_string = open(

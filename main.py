@@ -20,6 +20,10 @@ from config import (
     MODEL_KIND,
     LEARNING_RATE,
     MODELS_FOLDER,
+    CHECKPOINT_FOLDER,
+    LR_ALPHA,
+    TFRECORDS_TRAIN_PATH,
+    TFRECORDS_VAL_PATH,
 )
 
 import matplotlib.pyplot as plt
@@ -101,24 +105,40 @@ if __name__ == "__main__":
         labels = json.load(f)
 
     # Dataset
-    dataset = init_dataset(
-        os.path.join(DATAPATH, "train_tfrecords"),
+    # dataset = init_dataset(
+    #     os.path.join(DATAPATH, "train_tfrecords"),
+    #     is_target=True,
+    #     shuffle=True,
+    # )
+    #
+    # ds_train, ds_test = split_dataset(dataset, train_size=TRAIN_SIZE)
+
+    ds_train = init_dataset(
+        os.path.join(DATAPATH, TFRECORDS_TRAIN_PATH),
         is_target=True,
         shuffle=True,
+        augment=True
     )
-
-    ds_train, ds_test = split_dataset(dataset, train_size=TRAIN_SIZE)
     ds_train = ds_train.map(
         input_preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE
     )
     ds_train = ds_train.batch(batch_size=BATCH_SIZE, drop_remainder=True)
     ds_train = ds_train.prefetch(tf.data.experimental.AUTOTUNE)
 
+    # ValueError: When providing an infinite dataset, you must specify the number
+    # of steps to run (if you did not intend to create an infinite dataset,
+    # make sure to not call `repeat()` on the dataset).
+    # ds_train = ds_train.repeat()
+
+    ds_test = init_dataset(
+        os.path.join(DATAPATH, TFRECORDS_VAL_PATH),
+        is_target=True,
+        shuffle=False,
+        augment=False
+    )
     ds_test = ds_test.map(input_preprocess)
     ds_test = ds_test.batch(batch_size=BATCH_SIZE, drop_remainder=True)
-
-    ds_train.prefetch(tf.data.experimental.AUTOTUNE)
-    ds_test.prefetch(tf.data.experimental.AUTOTUNE)
+    ds_test = ds_test.prefetch(tf.data.experimental.AUTOTUNE)
 
     model = build_model_transfer(num_classes=NUM_CLASSES)
 
@@ -127,25 +147,28 @@ if __name__ == "__main__":
     # !!! DECAY_STEPS == EPOCHS !!!
     decay_steps = EPOCHS  # * int(NUM_IMAGES * TRAIN_SIZE) // BATCH_SIZE
     scheduler = tf.keras.experimental.CosineDecay(
-        LEARNING_RATE, decay_steps, alpha=0.0, name=None  # 0.0 * LEARNING_RATE
+        LEARNING_RATE,
+        decay_steps,
+        alpha=LR_ALPHA,
+        name=None,  # 0.0 * LEARNING_RATE
     )
 
     callbacks = [
-        tf.keras.callbacks.EarlyStopping(patience=5),
+        tf.keras.callbacks.EarlyStopping(patience=10),
         tf.keras.callbacks.LearningRateScheduler(scheduler),
         # tf.keras.callbacks.ReduceLROnPlateau(
         #     monitor="val_loss",
         #     factor=0.1,
-        #     patience=5,
+        #     patience=20,
         #     verbose=1,
         #     mode="auto",
         #     min_delta=1e-4,
         #     cooldown=0,
-        #     min_lr=0,
+        #     min_lr=1e-7,
         # ),
         tf.keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(
-                MODELS_FOLDER, "model.{epoch:02d}-{val_loss:.2f}.h5"
+                CHECKPOINT_FOLDER, "model.{epoch:02d}-{val_loss:.2f}.h5"
             )
         ),
         tf.keras.callbacks.TensorBoard(
@@ -159,10 +182,10 @@ if __name__ == "__main__":
         validation_data=ds_test,
         callbacks=callbacks,
         verbose=1,
-        class_weight={key: val for key, val in enumerate(WEIGHTS)},
+        # class_weight={key: val for key, val in enumerate(WEIGHTS)},
     )
 
     # Saving trained model
     model.save(
-        os.path.join("models", DATESTRING + "_" + MODEL_KIND),
+        os.path.join(MODELS_FOLDER, DATESTRING + "_" + MODEL_KIND),
     )
