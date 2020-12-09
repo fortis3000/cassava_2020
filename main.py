@@ -114,7 +114,7 @@ if __name__ == "__main__":
     # ds_train, ds_test = split_dataset(dataset, train_size=TRAIN_SIZE)
 
     ds_train = init_dataset(
-        os.path.join(DATAPATH, TFRECORDS_TRAIN_PATH),
+        os.path.join(TFRECORDS_TRAIN_PATH),
         is_target=True,
         shuffle=True,
         augment=True
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # ds_train = ds_train.repeat()
 
     ds_test = init_dataset(
-        os.path.join(DATAPATH, TFRECORDS_VAL_PATH),
+        os.path.join(TFRECORDS_VAL_PATH),
         is_target=True,
         shuffle=False,
         augment=False
