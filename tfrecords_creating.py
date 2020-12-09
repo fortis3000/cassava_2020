@@ -63,25 +63,38 @@ if __name__ == "__main__":
         os.path.join(DATAPATH, "train.csv"), header=0, index_col=None
     )
 
-    upsample_multipliers = [15, 7, 7, 1, 7]  # considering 200 val images
+    upsample_multipliers = [5, 2, 2, 1, 2]  # considering 200 val images
 
     # split inital dataset into train and val
     dfs_train = []
     dfs_val = []
     for label in range(NUM_CLASSES):
         sampled = df[df["label"] == label].sample(frac=1, random_state=SEED)
+
+        if label == 3:
+            sampled = sampled.sample(n=5000, random_state=SEED)
+
         dfs_val.append(sampled[:NUM_IMAGES_VAL])
         dfs_train.append(
-            pd.concat([sampled[NUM_IMAGES_VAL:]] * upsample_multipliers[label])
+            pd.concat(
+                [sampled[NUM_IMAGES_VAL:]] * upsample_multipliers[label]
+            ).sample(frac=1, random_state=SEED)
         )
 
-    dfs = {"train": pd.concat(dfs_train), "val": pd.concat(dfs_val)}
+    dfs = {
+        "train": pd.concat(dfs_train).sample(frac=1, random_state=SEED),
+        "val": pd.concat(dfs_val).sample(frac=1, random_state=SEED),
+    }
+
     paths = {"train": TFRECORDS_TRAIN_PATH, "val": TFRECORDS_VAL_PATH}
 
     for key, val in dfs.items():
         with tf.io.TFRecordWriter(
             os.path.join(paths[key], f"{key}.tfrecords")
         ) as writer:
+
+            val.to_csv(f"{key}.csv", sep=",")
+
             for row, col in val.iterrows():
                 image_string = open(
                     os.path.join(DATAPATH, "train_images", col["image_id"]),
