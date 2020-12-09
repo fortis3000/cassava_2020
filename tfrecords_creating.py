@@ -76,7 +76,7 @@ if __name__ == "__main__":
         )
 
     dfs = {"train": pd.concat(dfs_train), "val": pd.concat(dfs_val)}
-    paths = {{"train": TFRECORDS_TRAIN_PATH, "val": TFRECORDS_VAL_PATH}}
+    paths = {"train": TFRECORDS_TRAIN_PATH, "val": TFRECORDS_VAL_PATH}
 
     for key, val in dfs.items():
         with tf.io.TFRecordWriter(
@@ -99,3 +99,5 @@ if __name__ == "__main__":
                     features=tf.train.Features(feature=feature)
                 )
                 writer.write(example.SerializeToString())
+
+        print(f"{key} has been written")
