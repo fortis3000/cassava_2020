@@ -154,7 +154,7 @@ if __name__ == "__main__":
     )
 
     callbacks = [
-        tf.keras.callbacks.EarlyStopping(patience=10),
+        tf.keras.callbacks.EarlyStopping(patience=20),
         tf.keras.callbacks.LearningRateScheduler(scheduler),
         # tf.keras.callbacks.ReduceLROnPlateau(
         #     monitor="val_loss",

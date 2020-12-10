@@ -28,7 +28,7 @@ batch_sizes = {
     "EfficientNetB0": 32,  # checked (local)
     "EfficientNetB1": 16,
     "EfficientNetB2": 16,
-    "EfficientNetB3": 16,
+    "EfficientNetB3": 8,  # checked (local)
     "EfficientNetB4": 16,
     "EfficientNetB5": 8,  # checked (for Kaggle)
     "EfficientNetB6": 8,
@@ -63,7 +63,7 @@ BATCH_SIZE = batch_sizes[MODEL_KIND]
 EPOCHS = 60  # max 100
 
 # https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras
-WEIGHTS = [1] * 5
+WEIGHTS = [3, 1.5, 1.5, 1, 1.5]
 
 # uniform weights
 # [1] * 5

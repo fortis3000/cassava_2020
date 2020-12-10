@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     seed_everything(SEED)
 
-    NUM_IMAGES_VAL = 200  # per class
+    NUM_IMAGES_VAL = 300  # per class
 
     filename_train = "train.tfrecord"
     filename_val = "val.tfrecord"
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         os.path.join(DATAPATH, "train.csv"), header=0, index_col=None
     )
 
-    upsample_multipliers = [5, 2, 2, 1, 2]  # considering 200 val images
+    upsample_multipliers = [3, 2, 2, 1, 2]  # considering 200 val images
 
     # split inital dataset into train and val
     dfs_train = []
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         sampled = df[df["label"] == label].sample(frac=1, random_state=SEED)
 
         if label == 3:
-            sampled = sampled.sample(n=5000, random_state=SEED)
+            sampled = sampled.sample(n=6000, random_state=SEED)
 
         dfs_val.append(sampled[:NUM_IMAGES_VAL])
         dfs_train.append(

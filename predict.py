@@ -24,7 +24,7 @@ def predict_image(model, image):
     return pred
 
 
-def predict_batch(model, dataset:tf.data.Dataset):
+def predict_batch(model, dataset: tf.data.Dataset):
     pred_probs = []
     labels_pred = []
     labels_true = []
@@ -44,6 +44,7 @@ def predict_batch(model, dataset:tf.data.Dataset):
     labels_pred = tf.concat(labels_pred, axis=-1).numpy()
 
     return labels_true, labels_pred, probas
+
 
 def make_submission(
     model, image_ds: tf.data.Dataset, filename: str = "submission.csv"
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     #####
     import pickle
     from dataset import init_dataset, input_preprocess
-    from config import TFRECORDS_VAL_PATH
+    from config import TFRECORDS_VAL_PATH, TFRECORDS_TRAIN_PATH
     from sklearn.metrics import confusion_matrix, classification_report
 
     ds_val = init_dataset(
@@ -94,7 +95,7 @@ if __name__ == "__main__":
         augment=False,
     )
     ds_val = ds_val.map(input_preprocess)
-    ds_val = ds_val.batch(batch_size=10, drop_remainder=True)
+    ds_val = ds_val.batch(batch_size=1, drop_remainder=True)
     ds_val = ds_val.prefetch(tf.data.experimental.AUTOTUNE)
 
     labels_true, labels_pred, _ = predict_batch(model, ds_val)

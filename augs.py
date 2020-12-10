@@ -17,10 +17,11 @@ img_augmentation_sequential = Sequential(
         preprocessing.CenterCrop(height=HEIGHT, width=WIDTH),
         preprocessing.RandomZoom(
             height_factor=(0.2, 0.5),
-            width_factor=(-0.3, 0.3),  # None to preserve ratio
+            width_factor=(0.1, 0.3),  # None to preserve ratio
             fill_mode="constant",
             seed=SEED,
         ),
+        preprocessing.Resizing(WIDTH, HEIGHT),
     ],
     name="img_augmentation",
 )
@@ -202,6 +203,7 @@ def data_augment(image, label):
     return image, label
 
 
+# TODO: check augmentations visually
 if __name__ == "__main__":
 
     import matplotlib.pyplot as plt

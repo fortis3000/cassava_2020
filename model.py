@@ -118,16 +118,13 @@ def build_model_transfer(num_classes):
     # freeze model
     model.trainable = True
 
+    # freeze some layers
     # for layer in model.layers[-40:]:
     #     if not isinstance(layer, layers.BatchNormalization):
     #         layer.trainable = True
 
     # Rebuild top (head)
     x = k.layers.GlobalAveragePooling2D(name="avg_pool_head")(model.output)
-    x = k.layers.BatchNormalization(name="batch_norm_head")(x)
-
-    top_dropout_rate = 0.2
-    x = k.layers.Dropout(top_dropout_rate, name="top_dropout_head")(x)
 
     outputs = layers.Dense(
         num_classes, activation="softmax", name="softmax_head"
@@ -138,6 +135,10 @@ def build_model_transfer(num_classes):
     model = k.Model(inputs, outputs, name="EfficientNet")
 
     optimizer = k.optimizers.Adam(learning_rate=LEARNING_RATE)
+    loss = tf.losses.CategoricalCrossentropy(
+        from_logits=False, label_smoothing=0.01, name="categorical_crossentropy"
+    )
+
     lr_metric = get_lr_metric(optimizer)
 
     # displayed in Tensorboard
@@ -164,7 +165,7 @@ def build_model_transfer(num_classes):
     print("start compiling")
     model.compile(
         optimizer=optimizer,
-        loss="categorical_crossentropy",
+        loss=loss,
         metrics=metrics,
     )
 
